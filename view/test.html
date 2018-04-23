@@ -1,0 +1,126 @@
+<!doctype html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0"/>
+		<title><?=$data['title']?> - 在线测验系统</title>
+		<link rel="stylesheet" href="./view/css/style.css">
+		<script src="./view/js/jquery.min.js"></script>
+		<script src="./view/js/jquery.timeout.js"></script>
+		<script>
+			$(function () {
+				//关闭页面前提示
+				$(window).on("beforeunload", function () {
+					return "您尚未交卷！此操作将导致您的回答丢失。";
+				});
+				timeOver = false; //保存当前是否已经达到交卷时间
+				//倒计时功能
+				$(".timeout").timeout({
+					//考试时间（页面刷新时，时间会重置。）
+					"maxTime": <?=$data['timeout']?>,
+					//到达时间自动交卷。（如果浏览器禁用JavaScript，此功能不会生效）
+					"onTimeOver": function () {
+						timeOver = true;
+						alert("考试时间结束，系统自动交卷。");
+						$("#testForm").submit();//交卷
+					}
+				});
+				$("#testForm").submit(function (event) {
+					$(window).off("beforeunload");      //解除绑定页面关闭事件
+					timeOver || checkMultiple(event);	//检查多选题是否全部作答
+				});
+				//多选题至少选择一项
+				function checkMultiple(event) {
+					$(".jq-multiple .question-each").each(function () {
+						if ($(this).find(".question-option input[type=checkbox]:checked").length < 1) {
+							$(this).find(".question-option input[type=checkbox]:first").focus();
+							event.preventDefault();  //阻止表单提交
+							alert('您有多选题未作答。');
+							return false;
+						}
+					});
+				}
+				;
+			});
+		</script>
+	</head>
+	<body>
+		<div class="top">
+			<div class="top-title">[ <?php echo $name;?> ] 正在考试 （<span class="timeout"></span>）</div>
+		</div>
+		<div class="main">
+			<div class="main-wrap">
+				<!-- 顶部标题 -->
+				<div class="question-top">
+					<!-- 试卷标题 -->
+					<div class="question-title"><?=$data['title']?></div>
+					<!-- 题型导航 -->
+					<div class="question-nav">
+						<a href="#judge">判断题</a>
+						<a href="#choice">单选题</a>
+						<a href="#blank">填空题</a>
+					</div>
+				</div>
+				<!-- 题目内容 -->
+				<form action="total.php" method="post" id="testForm">
+					<!-- 判断题 -->
+					<div id="judge" class="anchor" ></div>
+					<div class="question-wrap">
+						<div class="question-type">一、判断题<span>（共<?=count($arr_judge)?>题，每题<?=$data['data']['judge']['score']?>分）</span></div>
+						<?php for($i=0;$i<count($arr_judge);$i++){ ?>
+						<div class="question-each">
+							<!-- 标题 -->
+							<div class="question-name"><?=$i+1?>. <?=$data['data']['judge']['data']["$arr_judge[$i]"]['question']?></div>
+							<!-- 选项 -->
+							<div class="question-option">
+								<label><input type="radio" value="T" name="judge[<?=$i?>]" required>对</label>
+								<label><input type="radio" value="F" name="judge[<?=$i?>]" required>错</label>
+							</div>
+						</div>
+						<?php } ?>
+					</div>
+					<!-- 单选题 -->
+					<div id="choice" class="anchor" ></div>
+					<div class="question-wrap">
+						<div class="question-type">二、单选题<span>（共<?=count($arr_choice)?>题，每题<?=$data['data']['choice']['score']?>分）</span></div>
+						<?php for($j=0;$j<count($arr_choice);$j++){ ?>
+						<div class="question-each">
+							<!-- 标题 -->
+							<div class="question-name"><?=$j+1?>. <?=$data['data']['choice']['data']["$arr_choice[$j]"]['question']?></div>
+							<!-- 选项 -->
+							<div class="question-option">
+								<label><input type="radio" value="A" name="choice[<?=$j?>]" required>A. <?=$data['data']['choice']['data']["$arr_choice[$j]"]['option'][0]?></label>
+								<label><input type="radio" value="B" name="choice[<?=$j?>]" required>B. <?=$data['data']['choice']['data']["$arr_choice[$j]"]['option'][1]?></label>
+								<label><input type="radio" value="C" name="choice[<?=$j?>]" required>C. <?=$data['data']['choice']['data']["$arr_choice[$j]"]['option'][2]?></label>
+								<label><input type="radio" value="D" name="choice[<?=$j?>]" required>D. <?=$data['data']['choice']['data']["$arr_choice[$j]"]['option'][3]?></label>
+							</div>
+						</div>
+						<?php } ?>
+					</div>
+					
+					<!-- 填空题 -->
+					<div id="blank" class="anchor" ></div>
+					<div class="question-wrap">
+						<div class="question-type">三、填空题<span>（共<?=count($arr_blank)?>题，每题<?=$data['data']['blank']['score']?>分）</span></div>
+						<?php for($k=0;$k<count($arr_blank);$k++){ ?>
+						<div class="question-each">
+							<!-- 标题 -->
+							<div class="question-name"><?=$k+1?>. <?=$data['data']['blank']['data']["$arr_blank[$k]"]['question']?></div>
+							<!-- 选项 -->
+							<div class="question-option">
+								<span>请输入答案：<input type="text" name="blank[<?=$k?>]" required></span>
+							</div>
+						</div>
+						<?php } ?>
+					</div>
+					<div class="question-act">
+						<input type="submit" value="交卷" >
+					</div>
+				</form>
+			</div>
+		</div>
+		<div class="footer">
+			小金橙微课堂在线测验系统
+		</div>
+	</body>
+</html>

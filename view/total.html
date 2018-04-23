@@ -1,0 +1,44 @@
+<!doctype html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<!--<meta name="viewport" content="width=device-width, initial-scale=1.0">-->
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0"/>
+		<title>考试结束 - 在线测验系统</title>
+		<link rel="stylesheet" href="./view/css/style.css">
+	</head>
+	<body>
+		<div class="top">
+			<div class="top-title">在线测验系统 - 考试结束</div>
+		</div>
+		<div class="main">
+			<div class="main-wrap">
+				<div class="main-title center">[<?=$studentid?> ] <?=$name?></div>
+				<div class="main-title center">考试结束， <?php 
+				include "common/connection.php";
+				$res1 = mysqli_query($conn,"select * from score where studentid=$studentid");
+				$res2 = mysqli_fetch_array($res1);
+				if($res2){
+					echo "你已提交过成绩！";
+					if($res2['score']==0){
+						$result=mysqli_query($conn,"update score set score=$sum where studentid=$studentid");
+						echo "<br />成绩更新成功！";
+					}
+				}else{
+					$result=mysqli_query($conn,"insert into score(studentid,name,score,ip_addr,t_time,q_time)values('$studentid','$name','$sum','$ip','$t_time','$q_time')");
+					if($result) echo "数据上传成功！";
+					else echo "数据上传失败！<br />请重新刷新页面，但不要关闭！"; 
+				}
+				
+				?></div>
+				
+				<div class="total-act">
+					<a href="./">返回首页</a>
+				</div>
+			</div>
+		</div>
+		<div class="footer">
+			小金橙微课堂在线测验系统
+		</div>
+	</body>
+</html>
